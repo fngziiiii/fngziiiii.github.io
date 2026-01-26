@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ระบบขายหวย 00-99</title>
+<style>
+body { font-family: sans-serif; background:#f4f4f4; padding:20px }
+.grid { display:grid; grid-template-columns: repeat(10, 1fr); gap:8px; }
+.number {
+  padding:12px;
+  text-align:center;
+  border-radius:6px;
+  cursor:pointer;
+  background:#c8e6c9; /* ว่าง */
+}
+.sold { background:#ef9a9a; cursor:not-allowed }
+.unpaid { background:#fff59d }
+.summary { margin:20px 0; padding:15px; background:#fff; border-radius:8px }
+</style>
+</head>
+
+<body>
+
+<h2>🎟 ระบบขายหวย 00–99</h2>
+
+<div class="summary" id="summary"></div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const PRICE = 50;
+let data = JSON.parse(localStorage.getItem("lottery")) || {};
+
+const grid = document.getElementById("grid");
+const summary = document.getElementById("summary");
+
+function render() {
+  grid.innerHTML = "";
+  let sold = 0, paid = 0;
+
+  for (let i = 0; i < 100; i++) {
+    const num = i.toString().padStart(2,"0");
+    const div = document.createElement("div");
+    div.className = "number";
+    div.innerText = num;
+
+    if (data[num]) {
+      sold++;
+      if (data[num].paid) {
+        div.classList.add("sold");
+        paid++;
+      } else {
+        div.classList.add("unpaid");
+      }
+    } else {
+      div.onclick = () => buy(num);
+    }
+
+    grid.appendChild(div);
+  }
+
+  summary.innerHTML = `
+    <b>สรุปยอด</b><br>
+    ขายแล้ว: ${sold} เลข<br>
+    จ่ายแล้ว: ${paid} เลข = ${paid * PRICE} บาท<br>
+    ค้างจ่าย: ${sold - paid} เลข = ${(sold - paid) * PRICE} บาท
+  `;
+}
+
+function buy(num) {
+  const name = prompt("ชื่อผู้ซื้อ:");
+  if (!name) return;
+
+  const paid = confirm("จ่ายเงินแล้วหรือยัง?");
+  data[num] = { name, paid };
+  localStorage.setItem("lottery", JSON.stringify(data));
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
