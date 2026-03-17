@@ -14,13 +14,13 @@
     body { background: #f4f7f6; font-family: 'Sarabun', sans-serif; padding-bottom: 20px; }
     .container { max-width: 800px; }
     
-    /* 🌟 เพิ่มคลาสสำหรับล็อคส่วนหัวให้อยู่กับที่ */
+    /* ล็อคส่วนหัวให้อยู่กับที่ */
     .sticky-header {
         position: sticky;
         top: 0;
-        z-index: 1000; /* ให้อยู่เลเยอร์บนสุด จะได้ไม่ถูกเลขทับตอนเลื่อน */
-        background: #f4f7f6; /* สีเดียวกับพื้นหลังเว็บ เพื่อให้ดูเนียนตา */
-        padding-top: 15px; /* เว้นระยะด้านบนนิดหน่อย */
+        z-index: 1000;
+        background: #f4f7f6;
+        padding-top: 15px;
         padding-bottom: 10px;
     }
 
@@ -73,14 +73,14 @@
                 </div>
                 <div>
                     <h5 class="fw-bold m-0 text-dark">ระบบเช็คเลข (00-99)</h5>
-                    <small class="text-muted" style="font-size:13px">บริหารจัดการง่ายๆ ในมือคุณ</small>
+                    <small class="text-muted" style="font-size:13px">พุทธังโหม ธัมมังโหม สังฆังล้อม อันตะรายานิวาศสันติ</small>
                 </div>
             </div>
             <div class="text-center text-md-end">
                 <button class="btn btn-sm btn-outline-primary m-1" onclick="showPersonSummary()"><i class="fas fa-user-check"></i> รายคน</button>
-                <button class="btn btn-sm btn-dark m-1" onclick="showSummary()"><i class="fas fa-chart-pie"></i> สรุปยอด</button>
-                <button class="btn btn-sm btn-success m-1" onclick="showAvailable()"><i class="fas fa-ticket-alt"></i> เลขที่เหลือ</button>
-                <button class="btn btn-sm btn-danger m-1" onclick="clearData()"><i class="fas fa-trash-alt"></i> ล้างใหม่</button>
+                <button class="btn btn-sm btn-dark m-1" onclick="showSummary()"><i class="fas fa-chart-pie"></i> สรุป</button>
+                <button class="btn btn-sm btn-success m-1" onclick="showAvailable()"><i class="fas fa-ticket-alt"></i> เลขเหลือ</button>
+                <button class="btn btn-sm btn-danger m-1" onclick="clearData()"><i class="fas fa-trash-alt"></i> ล้าง</button>
             </div>
         </div>
 
@@ -110,6 +110,7 @@
             </div>
         </div>
     </div>
+
     <div id="lottoList"></div>
 
 </div>
@@ -345,7 +346,8 @@ function showSummary() {
 function showAvailable() {
     const nums = tickets.filter(t => !t.customer).map(t => t.number);
     if (nums.length > 0) {
-        availableText.innerText = nums.join("  ");
+        // เปลี่ยนตรงนี้เป็น .join(", ") ครับ
+        availableText.innerText = nums.join(", ");
     } else {
         availableText.innerText = "❌ ไม่มีเลขเหลือแล้วครับ (ขายหมดเกลี้ยง!)";
     }
