@@ -3,253 +3,368 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เช็คเลข 00-99 </title>
+<title>ระบบเช็คเลข 00-99</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 
 <style>
-body{background:#f0f2f5;font-family:'Sarabun',sans-serif;padding-bottom:80px}
-.container{max-width:600px}
-.stat-card{background:#fff;border-radius:15px;padding:15px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.ticket-item{background:#fff;border-radius:12px;margin-bottom:10px;padding:15px;border-left:6px solid #e9ecef}
-.status-free{border-left-color:#ced4da}
-.status-pending{border-left-color:#ffc107;background:#fffbf0}
-.status-paid{border-left-color:#198754;background:#f0f9f4}
-.lotto-num{font-size:1.6rem;font-weight:800;letter-spacing:2px}
+    body { background: #f4f7f6; font-family: 'Sarabun', sans-serif; padding-bottom: 80px; }
+    .container { max-width: 800px; } /* ขยายความกว้างนิดหน่อยเพื่อรองรับ Grid */
+    
+    /* การ์ดสรุปยอดด้านบน */
+    .stat-card { 
+        background: #fff; border-radius: 16px; padding: 15px; text-align: center; 
+        box-shadow: 0 4px 15px rgba(0,0,0,.04); transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+
+    /* ปรับแต่งส่วนของรายการเลขให้เป็น Grid */
+    #lottoList {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* ปรับขนาดให้พอดีจอ */
+        gap: 12px;
+    }
+
+    /* การ์ดแต่ละหมายเลข */
+    .ticket-item { 
+        background: #fff; border-radius: 14px; padding: 12px; 
+        border-top: 5px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,.03);
+        transition: all 0.2s ease; display: flex; flex-direction: column;
+    }
+    .ticket-item:hover { box-shadow: 0 5px 15px rgba(0,0,0,.08); transform: translateY(-2px); }
+    
+    /* สีสถานะ */
+    .status-free { border-top-color: #ced4da; }
+    .status-pending { border-top-color: #ffc107; background: #fffdf5; }
+    .status-paid { border-top-color: #198754; background: #f4fbf7; }
+    
+    .lotto-num { font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; color: #333; }
+    
+    /* ปุ่ม Filter */
+    .filter-btn { border-radius: 20px; padding: 5px 15px; font-size: 0.9rem; }
+    
+    /* ปรับ Input ให้ดูละมุนขึ้น */
+    .form-control-sm { border-radius: 8px; border: 1px solid #dee2e6; }
+    .form-control-sm:focus { box-shadow: none; border-color: #86b7fe; }
 </style>
 </head>
 
 <body>
 <div class="container mt-4">
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <small class="text-muted" style="font-size:12px">ระบบเช็คเลข(00–99)</small>
-    <h5 class="fw-bold m-0">
-      <i class="fas fa-store text-primary"></i> <3
-    </h5>
-  </div>
-  <div class="text-end">
-    <button class="btn btn-sm btn-primary mb-1" onclick="showPersonSummary()">สรุปรายคน</button>
-    <button class="btn btn-sm btn-dark mb-1" onclick="showSummary()">สรุปยอด</button>
-    <button class="btn btn-sm btn-success mb-1" onclick="showAvailable()">เลขที่เหลือ</button>
-    <button class="btn btn-sm btn-outline-danger" onclick="clearData()">ล้างใหม่</button>
-  </div>
-</div>
-
-<div class="row g-2 mb-3">
-  <div class="col-6">
-    <div class="stat-card">
-      <small class="text-muted">ขายแล้ว (เลข)</small>
-      <div class="fw-bold text-primary" id="soldCount">0</div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px;">
+                <i class="fas fa-store fs-5"></i>
+            </div>
+            <div>
+                <h5 class="fw-bold m-0 text-dark">ระบบเช็คเลข (00-99)</h5>
+                <small class="text-muted" style="font-size:13px">บริหารจัดการง่ายๆ ในมือคุณ</small>
+            </div>
+        </div>
+        <div class="text-center text-md-end">
+            <button class="btn btn-sm btn-outline-primary m-1" onclick="showPersonSummary()"><i class="fas fa-user-check"></i> รายคน</button>
+            <button class="btn btn-sm btn-dark m-1" onclick="showSummary()"><i class="fas fa-chart-pie"></i> สรุปยอด</button>
+            <button class="btn btn-sm btn-success m-1" onclick="showAvailable()"><i class="fas fa-ticket-alt"></i> เลขที่เหลือ</button>
+            <button class="btn btn-sm btn-danger m-1" onclick="clearData()"><i class="fas fa-trash-alt"></i> ล้างใหม่</button>
+        </div>
     </div>
-  </div>
-  <div class="col-6">
-    <div class="stat-card">
-      <small class="text-muted">รับเงินแล้ว (บาท)</small>
-      <div class="fw-bold text-success" id="moneyCount">0</div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6">
+            <div class="stat-card border-bottom border-primary border-3">
+                <small class="text-muted fw-bold">ขายแล้ว (เลข)</small>
+                <div class="fw-bold text-primary fs-3" id="soldCount">0</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="stat-card border-bottom border-success border-3">
+                <small class="text-muted fw-bold">รับเงินแล้ว (บาท)</small>
+                <div class="fw-bold text-success fs-3" id="moneyCount">0</div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div class="bg-white p-3 rounded-4 shadow-sm mb-4">
+        <input id="searchInput" class="form-control form-control-lg mb-3 rounded-pill" placeholder="🔍 ค้นหาหมายเลข..." onkeyup="renderList()">
+        
+        <div class="d-flex flex-wrap gap-2 justify-content-center" id="filterContainer">
+            <button class="btn filter-btn btn-primary" onclick="setFilter('all')">ทั้งหมด</button>
+            <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('free')">ว่าง</button>
+            <button class="btn filter-btn btn-outline-warning text-dark" onclick="setFilter('pending')">รอโอน</button>
+            <button class="btn filter-btn btn-outline-success" onclick="setFilter('paid')">จ่ายแล้ว</button>
+        </div>
+    </div>
+
+    <div id="lottoList"></div>
+
 </div>
 
-<input id="searchInput" class="form-control form-control-lg mb-3"
- placeholder="🔍 ค้นหาเลข..." onkeyup="renderList()">
-
-<div id="lottoList"></div>
-</div>
-
-<!-- modal รายคน -->
 <div class="modal fade" id="personModal">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title fw-bold">สรุปรายคน (ค้างจ่าย)</h5>
-<button class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<select id="personSelect" class="form-select mb-2" onchange="renderPersonSummary()"></select>
-<pre id="personSummaryText" class="p-3 bg-light rounded"></pre>
-</div>
-<div class="modal-footer">
-<button class="btn btn-success w-100" onclick="copyPersonSummary()">ก๊อปปี้ส่งลูกค้า</button>
-</div>
-</div>
-</div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-invoice"></i> สรุปรายคน (ค้างจ่าย)</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select id="personSelect" class="form-select mb-3 form-select-lg" onchange="renderPersonSummary()"></select>
+                <pre id="personSummaryText" class="p-3 bg-light rounded border" style="font-family: 'Sarabun'; font-size: 15px; white-space: pre-wrap;"></pre>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-success w-100 rounded-pill" onclick="copyText('personSummaryText')"><i class="fas fa-copy"></i> คัดลอกข้อความส่งลูกค้า</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- modal สรุปยอด -->
 <div class="modal fade" id="summaryModal">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title fw-bold">สรุปยอดทั้งหมด</h5>
-<button class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<pre id="summaryText" class="p-3 bg-light rounded"></pre>
-</div>
-</div>
-</div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-chart-bar"></i> สรุปยอดทั้งหมด</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="summaryText" class="p-3 bg-light rounded border" style="font-family: 'Sarabun'; font-size: 16px;"></pre>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- modal เลขที่เหลือ -->
 <div class="modal fade" id="availableModal">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title fw-bold">เลขที่ยังเหลือ</h5>
-<button class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<pre id="availableText" class="p-3 bg-light rounded"></pre>
-</div>
-<div class="modal-footer">
-<button class="btn btn-success w-100" onclick="copyAvailable()">ก๊อปปี้เลขที่เหลือ</button>
-</div>
-</div>
-</div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-ticket-alt"></i> เลขที่ยังเหลือ</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="availableText" class="p-3 bg-light rounded border" style="font-family: 'Sarabun'; font-size: 16px; white-space: pre-wrap;"></pre>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-success w-100 rounded-pill" onclick="copyText('availableText')"><i class="fas fa-copy"></i> คัดลอกเลขที่เหลือ</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
 <script>
 const PRICE = 50;
 const BANK_INFO = `🏦 ธนาคารออมสิน
-เลขบัญชี 020-1-25404-630
-ชื่อบัญชี นันท์ภสร ขอบรูป`;
+เลขบัญชี: 020-1-25404-630
+ชื่อบัญชี: นันท์ภสร ขอบรูป`;
 
-let tickets=[];
+let tickets = [];
+let currentFilter = 'all';
 
-function init(){
-const saved=localStorage.getItem("myLottoShop");
-if(saved) tickets=JSON.parse(saved);
-else resetTickets();
-renderList();
+function init() {
+    const saved = localStorage.getItem("myLottoShop");
+    if(saved) tickets = JSON.parse(saved);
+    else resetTickets(false); // false = ไม่ต้อง save ซ้ำซ้อนตอนเปิดเว็บครั้งแรก
+    renderList();
 }
 
-function resetTickets(){
-tickets=[];
-for(let i=0;i<100;i++){
-tickets.push({number:i.toString().padStart(2,"0"),customer:"",isPaid:false});
-}
-save();
-}
-
-function renderList(){
-const s=searchInput.value;
-lottoList.innerHTML="";
-let sold=0,money=0;
-
-tickets.forEach((t,i)=>{
-if(t.customer){
-sold++;
-if(t.isPaid) money+=PRICE;
-}
-if(!t.number.includes(s))return;
-
-lottoList.innerHTML+=`
-<div class="ticket-item ${t.customer?(t.isPaid?'status-paid':'status-pending'):'status-free'}">
-<div class="d-flex justify-content-between mb-2">
-<div><span class="lotto-num">${t.number}</span></div>
-<span class="badge ${t.customer?(t.isPaid?'bg-success':'bg-warning text-dark'):'bg-secondary'}">
-${t.customer?(t.isPaid?'จ่ายแล้ว':'รอโอน'):'ว่าง'}
-</span>
-</div>
-<div class="row g-2">
-<div class="col-8">
-<input class="form-control form-control-sm" placeholder="ชื่อลูกค้า"
-value="${t.customer}" onchange="updateCustomer(${i},this.value)">
-</div>
-<div class="col-4">
-<button class="btn btn-sm w-100 ${t.isPaid?'btn-success':'btn-outline-secondary'}"
-onclick="togglePaid(${i})" ${!t.customer?'disabled':''}>
-${t.isPaid?'รับแล้ว':'รับเงิน'}
-</button>
-</div>
-</div>
-</div>`;
-});
-
-soldCount.innerText=sold+"/100 เลข";
-moneyCount.innerText=money.toLocaleString();
+function resetTickets(shouldSave = true) {
+    tickets = [];
+    for(let i=0; i<100; i++) {
+        tickets.push({ number: i.toString().padStart(2,"0"), customer: "", isPaid: false });
+    }
+    if(shouldSave) save();
 }
 
-function updateCustomer(i,v){
-tickets[i].customer=v;
-if(!v) tickets[i].isPaid=false;
-save();
+// ระบบ Filter
+function setFilter(filterType) {
+    currentFilter = filterType;
+    
+    // อัปเดตสีปุ่ม Filter
+    const buttons = document.querySelectorAll('#filterContainer .btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('btn-primary', 'btn-secondary', 'btn-warning', 'btn-success');
+        btn.classList.add('btn-outline-secondary'); // เซ็ตค่าเริ่มต้นให้เป็น outline
+    });
+
+    // ไฮไลท์ปุ่มที่ถูกเลือก
+    const activeBtn = event.currentTarget;
+    activeBtn.classList.remove('btn-outline-secondary', 'btn-outline-warning', 'btn-outline-success');
+    
+    if(filterType === 'all') activeBtn.classList.add('btn-primary');
+    else if(filterType === 'free') activeBtn.classList.add('btn-secondary');
+    else if(filterType === 'pending') activeBtn.classList.add('btn-warning', 'text-dark');
+    else if(filterType === 'paid') activeBtn.classList.add('btn-success');
+
+    renderList();
 }
 
-function togglePaid(i){
-tickets[i].isPaid=!tickets[i].isPaid;
-save();
+function renderList() {
+    const searchVal = searchInput.value;
+    lottoList.innerHTML = "";
+    let sold = 0, money = 0;
+
+    tickets.forEach((t, i) => {
+        // คำนวณยอดรวม (คำนวณจากข้อมูลทั้งหมดเสมอ ไม่สน Filter)
+        if (t.customer) {
+            sold++;
+            if (t.isPaid) money += PRICE;
+        }
+
+        // Logic การค้นหา
+        if (!t.number.includes(searchVal) && !t.customer.includes(searchVal)) return;
+
+        // Logic การ Filter
+        if (currentFilter === 'free' && t.customer !== "") return;
+        if (currentFilter === 'pending' && (!t.customer || t.isPaid)) return;
+        if (currentFilter === 'paid' && (!t.customer || !t.isPaid)) return;
+
+        // กำหนดสถานะ
+        let statusClass = 'status-free';
+        let badgeColor = 'bg-secondary';
+        let badgeText = 'ว่าง';
+
+        if (t.customer) {
+            if (t.isPaid) {
+                statusClass = 'status-paid';
+                badgeColor = 'bg-success';
+                badgeText = 'จ่ายแล้ว';
+            } else {
+                statusClass = 'status-pending';
+                badgeColor = 'bg-warning text-dark';
+                badgeText = 'รอโอน';
+            }
+        }
+
+        // สร้าง Card ลงใน Grid
+        lottoList.innerHTML += `
+        <div class="ticket-item ${statusClass}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="lotto-num">${t.number}</span>
+                <span class="badge rounded-pill ${badgeColor}">${badgeText}</span>
+            </div>
+            <div class="mt-auto">
+                <input class="form-control form-control-sm mb-2 text-center" placeholder="ชื่อลูกค้า"
+                    value="${t.customer}" onchange="updateCustomer(${i}, this.value)">
+                
+                <button class="btn btn-sm w-100 rounded-pill fw-bold ${t.isPaid ? 'btn-success' : 'btn-outline-secondary'}"
+                    onclick="togglePaid(${i})" ${!t.customer ? 'disabled' : ''}>
+                    ${t.isPaid ? '<i class="fas fa-check-circle"></i> รับแล้ว' : 'รับเงิน'}
+                </button>
+            </div>
+        </div>`;
+    });
+
+    soldCount.innerText = sold + " / 100";
+    moneyCount.innerText = "฿ " + money.toLocaleString();
 }
 
-function save(){
-localStorage.setItem("myLottoShop",JSON.stringify(tickets));
-renderList();
+function updateCustomer(i, v) {
+    tickets[i].customer = v.trim(); // ตัดช่องว่างหัวท้ายออก
+    if(!tickets[i].customer) tickets[i].isPaid = false;
+    save();
 }
 
-function clearData(){
-if(confirm("ล้างข้อมูลทั้งหมด?")) resetTickets();
+function togglePaid(i) {
+    tickets[i].isPaid = !tickets[i].isPaid;
+    save();
 }
 
-function showPersonSummary(){
-const names=[...new Set(tickets.filter(t=>t.customer&&!t.isPaid).map(t=>t.customer))];
-personSelect.innerHTML='<option value="">เลือกลูกค้า</option>';
-names.forEach(n=>personSelect.innerHTML+=`<option>${n}</option>`);
-personSummaryText.innerText="";
-new bootstrap.Modal(personModal).show();
+function save() {
+    localStorage.setItem("myLottoShop", JSON.stringify(tickets));
+    renderList();
 }
 
-function renderPersonSummary(){
-const name=personSelect.value;
-if(!name)return;
-const items=tickets.filter(t=>t.customer===name&&!t.isPaid);
-let txt=`📌 สรุปยอดคุณ ${name}\n\nเลขที่ซื้อ:\n`;
-items.forEach(i=>txt+=`- ${i.number}\n`);
-txt+=`\n💰 ยอดที่ต้องโอน ${items.length*PRICE} บาท\n\n${BANK_INFO}`;
-personSummaryText.innerText=txt;
+function clearData() {
+    Swal.fire({
+        title: 'ยืนยันการล้างข้อมูล?',
+        text: "ข้อมูลลูกค้าและการชำระเงินทั้งหมดจะหายไป ไม่สามารถกู้คืนได้!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'ล้างข้อมูล',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            resetTickets();
+            Swal.fire({ title: 'ล้างข้อมูลสำเร็จ!', icon: 'success', timer: 1500, showConfirmButton: false });
+        }
+    });
 }
 
-function copyPersonSummary(){
-navigator.clipboard.writeText(personSummaryText.innerText)
-.then(()=>alert("ก๊อปปี้เรียบร้อย"));
+function showPersonSummary() {
+    const names = [...new Set(tickets.filter(t => t.customer && !t.isPaid).map(t => t.customer))];
+    personSelect.innerHTML = '<option value="">-- เลือกลูกค้าที่ค้างจ่าย --</option>';
+    names.forEach(n => personSelect.innerHTML += `<option value="${n}">${n}</option>`);
+    
+    if(names.length === 0) {
+        personSummaryText.innerText = "🎉 ไม่มีลูกค้าค้างชำระเลยครับ!";
+    } else {
+        personSummaryText.innerText = "กรุณาเลือกลูกค้าจากเมนูด้านบน...";
+    }
+    
+    new bootstrap.Modal(document.getElementById('personModal')).show();
 }
 
-function showSummary(){
-let sold=0,paid=0,pending=0,money=0;
-tickets.forEach(t=>{
-if(t.customer){
-sold++;
-if(t.isPaid){paid++;money+=PRICE;}
-else pending++;
-}
-});
-
-summaryText.innerText=
-`📊 สรุปยอดทั้งหมด
-
-🎟️ ขายแล้ว ${sold} เลข
-💸 รับเงินแล้ว ${paid} เลข
-⏳ ค้างจ่าย ${pending} เลข
-💰 เงินที่รับแล้ว ${money.toLocaleString()} บาท
-`;
-new bootstrap.Modal(summaryModal).show();
+function renderPersonSummary() {
+    const name = personSelect.value;
+    if(!name) { personSummaryText.innerText = ""; return; }
+    
+    const items = tickets.filter(t => t.customer === name && !t.isPaid);
+    let txt = `📌 สรุปยอดคุณ ${name}\n\nเลขที่จอง:\n`;
+    
+    items.forEach(i => txt += `- ${i.number}\n`);
+    txt += `\n💰 ยอดที่ต้องโอน: ${items.length * PRICE} บาท\n\n${BANK_INFO}`;
+    
+    personSummaryText.innerText = txt;
 }
 
-function showAvailable(){
-const nums=tickets.filter(t=>!t.customer).map(t=>t.number);
-availableText.innerText=nums.length?nums.join(","):"❌ ไม่มีเลขเหลือแล้ว";
-new bootstrap.Modal(availableModal).show();
+function showSummary() {
+    let sold = 0, paid = 0, pending = 0, money = 0;
+    tickets.forEach(t => {
+        if(t.customer) {
+            sold++;
+            if(t.isPaid) { paid++; money += PRICE; }
+            else pending++;
+        }
+    });
+
+    summaryText.innerHTML = `📊 <b>สรุปยอดทั้งหมด</b>\n\n🎟️ ขายแล้ว: <b>${sold}</b> เลข\n💸 รับเงินแล้ว: <b>${paid}</b> เลข\n⏳ ค้างจ่าย: <b class="text-danger">${pending}</b> เลข\n💰 เงินที่รับแล้ว: <b class="text-success">${money.toLocaleString()}</b> บาท`;
+    new bootstrap.Modal(document.getElementById('summaryModal')).show();
 }
 
-function copyAvailable(){
-navigator.clipboard.writeText(availableText.innerText)
-.then(()=>alert("ก๊อปปี้เลขที่เหลือเรียบร้อย"));
+function showAvailable() {
+    const nums = tickets.filter(t => !t.customer).map(t => t.number);
+    if (nums.length > 0) {
+        // จัดกลุ่มให้ดูสวยๆ (เว้นวรรคทุกๆ 10 ตัว)
+        availableText.innerText = nums.join("  ");
+    } else {
+        availableText.innerText = "❌ ไม่มีเลขเหลือแล้วครับ (ขายหมดเกลี้ยง!)";
+    }
+    new bootstrap.Modal(document.getElementById('availableModal')).show();
 }
 
+// ฟังก์ชันสำหรับ Copy Text สากล พร้อม Alert สวยๆ
+function copyText(elementId) {
+    const textToCopy = document.getElementById(elementId).innerText;
+    if(!textToCopy || textToCopy.includes("กรุณาเลือก") || textToCopy.includes("ไม่มีลูกค้า")) return;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'คัดลอกข้อความแล้ว!',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    });
+}
+
+// เริ่มการทำงาน
 init();
 </script>
 </body>
