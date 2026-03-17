@@ -11,9 +11,19 @@
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 
 <style>
-    body { background: #f4f7f6; font-family: 'Sarabun', sans-serif; padding-bottom: 80px; }
-    .container { max-width: 800px; } /* ขยายความกว้างนิดหน่อยเพื่อรองรับ Grid */
+    body { background: #f4f7f6; font-family: 'Sarabun', sans-serif; padding-bottom: 20px; }
+    .container { max-width: 800px; }
     
+    /* 🌟 เพิ่มคลาสสำหรับล็อคส่วนหัวให้อยู่กับที่ */
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000; /* ให้อยู่เลเยอร์บนสุด จะได้ไม่ถูกเลขทับตอนเลื่อน */
+        background: #f4f7f6; /* สีเดียวกับพื้นหลังเว็บ เพื่อให้ดูเนียนตา */
+        padding-top: 15px; /* เว้นระยะด้านบนนิดหน่อย */
+        padding-bottom: 10px;
+    }
+
     /* การ์ดสรุปยอดด้านบน */
     .stat-card { 
         background: #fff; border-radius: 16px; padding: 15px; text-align: center; 
@@ -24,7 +34,7 @@
     /* ปรับแต่งส่วนของรายการเลขให้เป็น Grid */
     #lottoList {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* ปรับขนาดให้พอดีจอ */
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 12px;
     }
 
@@ -53,52 +63,53 @@
 </head>
 
 <body>
-<div class="container mt-4">
+<div class="container">
 
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
-        <div class="d-flex align-items-center mb-3 mb-md-0">
-            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px;">
-                <i class="fas fa-store fs-5"></i>
+    <div class="sticky-header">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 bg-white p-3 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px;">
+                    <i class="fas fa-store fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold m-0 text-dark">ระบบเช็คเลข (00-99)</h5>
+                    <small class="text-muted" style="font-size:13px">บริหารจัดการง่ายๆ ในมือคุณ</small>
+                </div>
             </div>
-            <div>
-                <h5 class="fw-bold m-0 text-dark">ระบบเช็คเลข (00-99)</h5>
-                <small class="text-muted" style="font-size:13px">บริหารจัดการง่ายๆ ในมือคุณ</small>
+            <div class="text-center text-md-end">
+                <button class="btn btn-sm btn-outline-primary m-1" onclick="showPersonSummary()"><i class="fas fa-user-check"></i> รายคน</button>
+                <button class="btn btn-sm btn-dark m-1" onclick="showSummary()"><i class="fas fa-chart-pie"></i> สรุปยอด</button>
+                <button class="btn btn-sm btn-success m-1" onclick="showAvailable()"><i class="fas fa-ticket-alt"></i> เลขที่เหลือ</button>
+                <button class="btn btn-sm btn-danger m-1" onclick="clearData()"><i class="fas fa-trash-alt"></i> ล้างใหม่</button>
             </div>
         </div>
-        <div class="text-center text-md-end">
-            <button class="btn btn-sm btn-outline-primary m-1" onclick="showPersonSummary()"><i class="fas fa-user-check"></i> รายคน</button>
-            <button class="btn btn-sm btn-dark m-1" onclick="showSummary()"><i class="fas fa-chart-pie"></i> สรุปยอด</button>
-            <button class="btn btn-sm btn-success m-1" onclick="showAvailable()"><i class="fas fa-ticket-alt"></i> เลขที่เหลือ</button>
-            <button class="btn btn-sm btn-danger m-1" onclick="clearData()"><i class="fas fa-trash-alt"></i> ล้างใหม่</button>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="stat-card border-bottom border-primary border-3">
+                    <small class="text-muted fw-bold">ขายแล้ว (เลข)</small>
+                    <div class="fw-bold text-primary fs-3" id="soldCount">0</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card border-bottom border-success border-3">
+                    <small class="text-muted fw-bold">รับเงินแล้ว (บาท)</small>
+                    <div class="fw-bold text-success fs-3" id="moneyCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-3 rounded-4 shadow-sm">
+            <input id="searchInput" class="form-control form-control-lg mb-3 rounded-pill" placeholder="🔍 ค้นหาหมายเลข หรือ ชื่อลูกค้า..." onkeyup="renderList()">
+            
+            <div class="d-flex flex-wrap gap-2 justify-content-center" id="filterContainer">
+                <button class="btn filter-btn btn-primary" onclick="setFilter('all')">ทั้งหมด</button>
+                <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('free')">ว่าง</button>
+                <button class="btn filter-btn btn-outline-warning text-dark" onclick="setFilter('pending')">รอโอน</button>
+                <button class="btn filter-btn btn-outline-success" onclick="setFilter('paid')">จ่ายแล้ว</button>
+            </div>
         </div>
     </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-6">
-            <div class="stat-card border-bottom border-primary border-3">
-                <small class="text-muted fw-bold">ขายแล้ว (เลข)</small>
-                <div class="fw-bold text-primary fs-3" id="soldCount">0</div>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="stat-card border-bottom border-success border-3">
-                <small class="text-muted fw-bold">รับเงินแล้ว (บาท)</small>
-                <div class="fw-bold text-success fs-3" id="moneyCount">0</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white p-3 rounded-4 shadow-sm mb-4">
-        <input id="searchInput" class="form-control form-control-lg mb-3 rounded-pill" placeholder="🔍 ค้นหาหมายเลข..." onkeyup="renderList()">
-        
-        <div class="d-flex flex-wrap gap-2 justify-content-center" id="filterContainer">
-            <button class="btn filter-btn btn-primary" onclick="setFilter('all')">ทั้งหมด</button>
-            <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('free')">ว่าง</button>
-            <button class="btn filter-btn btn-outline-warning text-dark" onclick="setFilter('pending')">รอโอน</button>
-            <button class="btn filter-btn btn-outline-success" onclick="setFilter('paid')">จ่ายแล้ว</button>
-        </div>
-    </div>
-
     <div id="lottoList"></div>
 
 </div>
@@ -166,7 +177,7 @@ let currentFilter = 'all';
 function init() {
     const saved = localStorage.getItem("myLottoShop");
     if(saved) tickets = JSON.parse(saved);
-    else resetTickets(false); // false = ไม่ต้อง save ซ้ำซ้อนตอนเปิดเว็บครั้งแรก
+    else resetTickets(false);
     renderList();
 }
 
@@ -178,18 +189,15 @@ function resetTickets(shouldSave = true) {
     if(shouldSave) save();
 }
 
-// ระบบ Filter
 function setFilter(filterType) {
     currentFilter = filterType;
     
-    // อัปเดตสีปุ่ม Filter
     const buttons = document.querySelectorAll('#filterContainer .btn');
     buttons.forEach(btn => {
         btn.classList.remove('btn-primary', 'btn-secondary', 'btn-warning', 'btn-success');
-        btn.classList.add('btn-outline-secondary'); // เซ็ตค่าเริ่มต้นให้เป็น outline
+        btn.classList.add('btn-outline-secondary');
     });
 
-    // ไฮไลท์ปุ่มที่ถูกเลือก
     const activeBtn = event.currentTarget;
     activeBtn.classList.remove('btn-outline-secondary', 'btn-outline-warning', 'btn-outline-success');
     
@@ -202,26 +210,24 @@ function setFilter(filterType) {
 }
 
 function renderList() {
-    const searchVal = searchInput.value;
+    const searchVal = searchInput.value.trim();
     lottoList.innerHTML = "";
     let sold = 0, money = 0;
 
+    let htmlBuffer = "";
+
     tickets.forEach((t, i) => {
-        // คำนวณยอดรวม (คำนวณจากข้อมูลทั้งหมดเสมอ ไม่สน Filter)
         if (t.customer) {
             sold++;
             if (t.isPaid) money += PRICE;
         }
 
-        // Logic การค้นหา
         if (!t.number.includes(searchVal) && !t.customer.includes(searchVal)) return;
 
-        // Logic การ Filter
         if (currentFilter === 'free' && t.customer !== "") return;
         if (currentFilter === 'pending' && (!t.customer || t.isPaid)) return;
         if (currentFilter === 'paid' && (!t.customer || !t.isPaid)) return;
 
-        // กำหนดสถานะ
         let statusClass = 'status-free';
         let badgeColor = 'bg-secondary';
         let badgeText = 'ว่าง';
@@ -238,8 +244,7 @@ function renderList() {
             }
         }
 
-        // สร้าง Card ลงใน Grid
-        lottoList.innerHTML += `
+        htmlBuffer += `
         <div class="ticket-item ${statusClass}">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="lotto-num">${t.number}</span>
@@ -257,12 +262,13 @@ function renderList() {
         </div>`;
     });
 
+    lottoList.innerHTML = htmlBuffer;
     soldCount.innerText = sold + " / 100";
     moneyCount.innerText = "฿ " + money.toLocaleString();
 }
 
 function updateCustomer(i, v) {
-    tickets[i].customer = v.trim(); // ตัดช่องว่างหัวท้ายออก
+    tickets[i].customer = v.trim();
     if(!tickets[i].customer) tickets[i].isPaid = false;
     save();
 }
@@ -339,7 +345,6 @@ function showSummary() {
 function showAvailable() {
     const nums = tickets.filter(t => !t.customer).map(t => t.number);
     if (nums.length > 0) {
-        // จัดกลุ่มให้ดูสวยๆ (เว้นวรรคทุกๆ 10 ตัว)
         availableText.innerText = nums.join("  ");
     } else {
         availableText.innerText = "❌ ไม่มีเลขเหลือแล้วครับ (ขายหมดเกลี้ยง!)";
@@ -347,7 +352,6 @@ function showAvailable() {
     new bootstrap.Modal(document.getElementById('availableModal')).show();
 }
 
-// ฟังก์ชันสำหรับ Copy Text สากล พร้อม Alert สวยๆ
 function copyText(elementId) {
     const textToCopy = document.getElementById(elementId).innerText;
     if(!textToCopy || textToCopy.includes("กรุณาเลือก") || textToCopy.includes("ไม่มีลูกค้า")) return;
@@ -364,7 +368,6 @@ function copyText(elementId) {
     });
 }
 
-// เริ่มการทำงาน
 init();
 </script>
 </body>
